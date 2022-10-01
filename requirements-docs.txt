@@ -49,4 +49,6 @@ sphinxcontrib-qthelp==1.0.3
 sphinxcontrib-serializinghtml==1.1.5
     # via sphinx
 urllib3==1.26.12
-    # via requests
+    # via
+    #   rearview (pyproject.toml)
+    #   requests

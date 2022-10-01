@@ -10,6 +10,7 @@ version = "2022.3.6.2"
 description = "Serving your docsets in your rear-view mirror"
 readme = "README.rst"
 authors = [{name = "Moshe Zadka", email = "moshez@zadka.club"}]
+dependencies = ["treq", "attrs"]
 
 [project.optional-dependencies]
 tests = ["virtue", "pyhamcrest", "coverage"]
