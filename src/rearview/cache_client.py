@@ -5,8 +5,8 @@ from treq import client
 
 @attrs.frozen
 class CachingClient:
-    _treq: treq.client.HTTPClient
     _cache_location: pathlib.Path
+    _treq: treq.client.HTTPClient = attr.field(factory=treq.client.HTTPClient)
     
     async def get(self, url):
         cleaned = url.replace("/", "_")

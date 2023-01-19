@@ -6,13 +6,37 @@ import attrs
 API_URL = "https://api.zealdocs.org/v1/docsets"
 RETRIEVE_URL = "https://go.zealdocs.org/d/{feed}/{name}/latest"
 
+from twisted.web import resource
+from twisted.python import log
+from zope import interface
+
+
+@interface.implementer(resource.IResource)
 @attrs.frozen
 class DocSet:
     source_id: str
     name: str
     title: str
     icon: bytes
-    contents: contents.AutoPopulated
+    get_resource: Callable[[str], Any]
+    
+    isLeaf = True
+    
+    def render(self, request):
+        path = "/".join(request.postpath)
+        content_type, _ign = mimetypes.guess_type(path)
+        content = defer.ensureDeferred(request.get_resource(path))
+        @content.addCallback
+        def success(the_content):
+            request.headers["Content-Type"] = content_type
+            request.write(the_content)
+            request.finish()
+        @content.addErrback
+        def fail(err):
+            log.err(err)
+            request.write("failed content")
+            request.finish()
+        return server.NOT_DONE_YET
     
     @classmethod
     def from_raw(cls, client, raw_data):
@@ -33,11 +57,18 @@ class DocSet:
         )
 
 
+@interface.implementer(resource.IResource)
 @attrs.define
 class DocSetCollection:
     _client: cache_client.Client
     _docsets: Mapping[str, DocSet] = attrs.field(init=False, factory=dict)
-    
+
+    def render(self, request):
+        return str(list(self._docset.keys()))
+
+    def getChildWithDefault(self, name, request):
+        return self._docsets[name]
+        
     @classmethod
     def from_client(cls, client):
         return cls(client=client)
